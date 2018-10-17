@@ -33,6 +33,9 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new != "" && old == d.Get("image_id")
+				},
 			},
 
 			"name": {
@@ -187,6 +190,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"image_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -320,6 +328,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("memory", droplet.Memory)
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
+	d.Set("image_id", godo.Stringify(droplet.Image.ID))
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
 	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))
